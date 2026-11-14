@@ -18,11 +18,12 @@
 | 9 | Ficha da família e edição | RF05 · HU05 | Must | Victor | Feito |
 | 10 | Registrar entrega e lista de quem falta receber | RF07 · RF08 · HU06 · HU07 | Should | Victor | Feito |
 | 11 | Versão mobile (barra de baixo e cartões) | RNF03 | Must | Victor | Feito |
-| 12 | Revisão do pull request e retrospectiva | – | Must | Levi | A fazer |
-| 13 | Vídeo de demonstração | – | Must | Victor e Levi | A fazer |
-| 14 | Tela de Doações e Relatório do mês | RF11 · HU10 | Could | – | Sprint 2 |
-| 15 | Atendimentos (fisioterapia e psicossocial) | RF09 · HU08 | Could | – | Sprint 2 |
-| 16 | Perfil voluntário sem anotações de saúde | RF13 | Should | – | Sprint 2 |
+| 12 | Relatório do mês com impressão | RF11 · HU10 | Could | Victor | Feito |
+| 13 | Revisão do pull request e retrospectiva | – | Must | Levi | A fazer |
+| 14 | Vídeo de demonstração | – | Must | Victor e Levi | A fazer |
+| 15 | Tela de Doações | RF07 | Could | – | Sprint 2 |
+| 16 | Atendimentos (fisioterapia e psicossocial) | RF09 · HU08 | Could | – | Sprint 2 |
+| 17 | Perfil voluntário sem anotações de saúde | RF13 | Should | – | Sprint 2 |
 
 ## Quadro
 
