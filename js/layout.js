@@ -11,7 +11,7 @@ function montarMenu(paginaAtiva) {
     { id: "inicio", texto: "Início", href: "inicio.html", icone: "⌂" },
     { id: "familias", texto: "Famílias", href: "familias.html", icone: "👥" },
     { id: "doacoes", texto: "Doações", href: "em-breve.html?tela=Doações", icone: "🎁" },
-    { id: "relatorios", texto: "Relatórios", href: "em-breve.html?tela=Relatórios", icone: "📊" }
+    { id: "relatorios", texto: "Relatórios", href: "relatorios.html", icone: "📊" }
   ];
 
   const topo = document.createElement("header");
@@ -33,8 +33,7 @@ function montarMenu(paginaAtiva) {
   const baixo = document.createElement("nav");
   baixo.className = "menu-celular";
   baixo.setAttribute("aria-label", "Menu principal (celular)");
-  const linksCelular = [links[0], links[1], links[2], { id: "mais", texto: "Mais", href: "em-breve.html?tela=Mais", icone: "☰" }];
-  baixo.innerHTML = linksCelular.map(l => `
+  baixo.innerHTML = links.map(l => `
     <a href="${l.href}" class="${l.id === paginaAtiva ? "ativo" : ""}">
       <span class="icone" aria-hidden="true">${l.icone}</span>${l.texto}
     </a>`).join("");
