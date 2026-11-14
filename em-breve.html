@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Em breve – AFH Cadastros</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <main class="conteudo">
+    <a class="voltar" href="inicio.html">← Voltar para o Início</a>
+    <h1 id="titulo">Em breve</h1>
+    <div class="cartao" style="margin-top:24px">
+      <p style="margin:0">Esta tela faz parte da <strong>Sprint 2</strong> e ainda está sendo construída.</p>
+      <p class="legenda" style="margin-top:8px">Nesta sprint entregamos: login, cadastro e edição de famílias, membros, busca por nome ou CPF, aviso de CPF repetido e registro de entregas.</p>
+    </div>
+  </main>
+
+  <script src="js/auth.js"></script>
+  <script src="js/dados.js"></script>
+  <script src="js/layout.js"></script>
+  <script>
+    const tela = new URLSearchParams(location.search).get("tela") || "Em breve";
+    const mapa = { "Doações": "doacoes", "Relatórios": "relatorios", "Mais": "mais" };
+    montarMenu(mapa[tela] || "");
+    document.getElementById("titulo").textContent = tela;
+  </script>
+</body>
+</html>
