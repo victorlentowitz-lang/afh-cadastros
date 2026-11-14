@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Famílias – AFH Cadastros</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <main class="conteudo">
+    <h1>Famílias</h1>
+    <p class="legenda">Busque pelo nome ou pelo CPF do responsável. O status mostra a cesta de <span id="mes"></span>.</p>
+
+    <!-- Busca (HU04 / RF04) -->
+    <h2><label for="busca">Buscar família</label></h2>
+    <div class="linha-busca">
+      <input type="search" id="busca" placeholder="🔍 Digite o nome ou o CPF do responsável" autocomplete="off">
+      <a class="btn btn-principal" href="familia-form.html">+ Nova família</a>
+    </div>
+    <p class="legenda" id="contagem" aria-live="polite" style="margin-top:12px"></p>
+
+    <!-- Computador: tabela -->
+    <div class="so-computador" style="margin-top:16px">
+      <table>
+        <thead>
+          <tr><th>Responsável</th><th>CPF</th><th>Bairro</th><th>Moradores</th><th>Cesta do mês</th></tr>
+        </thead>
+        <tbody id="tabela"></tbody>
+      </table>
+    </div>
+
+    <!-- Celular: cartões -->
+    <div class="so-celular lista" id="cartoes" style="margin-top:16px"></div>
+  </main>
+
+  <script src="js/auth.js"></script>
+  <script src="js/dados.js"></script>
+  <script src="js/layout.js"></script>
+  <script>
+    montarMenu("familias");
+    document.getElementById("mes").textContent = nomeDoMes();
+
+    const campoBusca = document.getElementById("busca");
+    const termoInicial = new URLSearchParams(location.search).get("busca");
+    if (termoInicial) campoBusca.value = termoInicial;
+
+    // Tira acentos para "joao" achar "João"
+    const normalizar = t => t.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+
+    function statusHTML(f) {
+      if (!f.ativa) return `<span class="status inativa">Inativa</span>`;
+      const cesta = cestaDoMes(f);
+      return cesta
+        ? `<span class="status recebeu">Recebeu em ${formatarData(cesta.data).slice(0, 5)}</span>`
+        : `<span class="status pendente">Ainda não recebeu</span>`;
+    }
+
+    function filtrar() {
+      const termo = campoBusca.value.trim();
+      const termoNum = somenteNumeros(termo);
+      const familias = listarFamilias()
+        .filter(f => {
+          if (!termo) return true;
+          if (termoNum.length >= 3 && f.cpf.includes(termoNum)) return true;
+          return normalizar(f.nome).includes(normalizar(termo));
+        })
+        .sort((a, b) => (b.ativa - a.ativa) || a.nome.localeCompare(b.nome));
+
+      document.getElementById("contagem").textContent =
+        familias.length === 1 ? "1 família encontrada" : `${familias.length} famílias encontradas`;
+
+      const tabela = document.getElementById("tabela");
+      const cartoes = document.getElementById("cartoes");
+
+      if (familias.length === 0) {
+        tabela.innerHTML = `<tr><td colspan="5">Nenhuma família encontrada. Confira o nome ou o CPF, ou cadastre uma nova família.</td></tr>`;
+        cartoes.innerHTML = `<p class="vazio">Nenhuma família encontrada.</p>`;
+        return;
+      }
+
+      tabela.innerHTML = familias.map(f => `
+        <tr class="clicavel" data-id="${f.id}">
+          <td><a href="familia.html?id=${f.id}">${escapar(f.nome)}</a></td>
+          <td>${formatarCPF(f.cpf)}</td>
+          <td>${escapar(f.bairro)}</td>
+          <td>${f.moradores}</td>
+          <td>${statusHTML(f)}</td>
+        </tr>`).join("");
+
+      cartoes.innerHTML = familias.map(f => `
+        <a class="item-familia" href="familia.html?id=${f.id}" style="color:inherit;font-weight:400">
+          <div>
+            <p class="nome">${escapar(f.nome)}</p>
+            <p class="info">CPF ${formatarCPF(f.cpf)} · ${escapar(f.bairro)}</p>
+          </div>
+          ${statusHTML(f)}
+        </a>`).join("");
+
+      tabela.querySelectorAll("tr.clicavel").forEach(linha =>
+        linha.addEventListener("click", () => window.location.href = "familia.html?id=" + linha.dataset.id)
+      );
+    }
+
+    campoBusca.addEventListener("input", filtrar);
+    filtrar();
+  </script>
+</body>
+</html>
