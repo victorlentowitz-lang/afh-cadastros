@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nova família – AFH Cadastros</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <main class="conteudo">
+    <a class="voltar" href="familias.html" id="linkVoltar">← Voltar para Famílias</a>
+    <h1 id="titulo">Nova família</h1>
+
+    <form class="cartao" id="formFamilia" novalidate style="margin-top:24px">
+      <p class="aviso erro" id="erroGeral" role="alert"></p>
+
+      <!-- Cadastro da família (HU02 / RF02) -->
+      <h2 style="margin-top:0">Dados do responsável</h2>
+      <div class="grade-form">
+        <div class="campo" id="campoNome">
+          <label for="nome">Nome completo *</label>
+          <input id="nome" required>
+          <p class="msg-erro" id="erroNome"></p>
+        </div>
+        <div class="campo" id="campoCpf">
+          <label for="cpf">CPF *</label>
+          <input id="cpf" inputmode="numeric" placeholder="000.000.000-00" maxlength="14" required>
+          <p class="msg-erro" id="erroCpf" role="alert"></p>
+        </div>
+        <div class="campo" id="campoTelefone">
+          <label for="telefone">Telefone</label>
+          <input id="telefone" inputmode="tel" placeholder="(42) 99999-0000" maxlength="15">
+          <p class="msg-erro" id="erroTelefone"></p>
+        </div>
+
+        <div class="campo">
+          <label for="endereco">Endereço</label>
+          <input id="endereco" placeholder="Rua e número">
+        </div>
+        <div class="campo">
+          <label for="bairro">Bairro</label>
+          <input id="bairro">
+        </div>
+        <div class="campo" id="campoMoradores">
+          <label for="moradores">Moradores</label>
+          <input id="moradores" type="number" min="1" max="30" value="1">
+          <p class="msg-erro" id="erroMoradores"></p>
+        </div>
+
+        <div class="campo">
+          <label for="renda">Renda familiar (R$)</label>
+          <input id="renda" inputmode="decimal" placeholder="Ex.: 1.200,00">
+        </div>
+        <div class="campo meio">
+          <label for="observacoes">Observações</label>
+          <input id="observacoes" placeholder="Algo importante sobre a família">
+        </div>
+      </div>
+
+      <!-- Membros (RF03) -->
+      <h2>Membros da família</h2>
+      <p class="legenda" id="semMembros" style="margin-bottom:12px">Nenhum membro adicionado.</p>
+      <div id="membros"></div>
+      <button type="button" class="btn btn-secundario" id="btnAddMembro">+ Adicionar membro</button>
+
+      <!-- Situação (só na edição) -->
+      <div id="blocoSituacao" hidden>
+        <h2>Situação</h2>
+        <label style="display:flex;gap:10px;align-items:center;font-weight:600">
+          <input type="checkbox" id="ativa" style="width:22px;height:22px"> Família ativa (recebe doações)
+        </label>
+      </div>
+
+      <div class="rodape-form">
+        <a class="btn btn-secundario" href="familias.html" id="btnCancelar">Cancelar</a>
+        <button type="submit" class="btn btn-principal">Salvar família</button>
+      </div>
+    </form>
+  </main>
+
+  <script src="js/auth.js"></script>
+  <script src="js/dados.js"></script>
+  <script src="js/layout.js"></script>
+  <script>
+    montarMenu("familias");
+
+    // Se veio com ?id=, é edição (HU05 / RF05)
+    const idEdicao = Number(new URLSearchParams(location.search).get("id")) || null;
+    const familiaEdicao = idEdicao ? buscarFamiliaPorId(idEdicao) : null;
+
+    const $ = id => document.getElementById(id);
+    const listaMembros = $("membros");
+
+    /* ---------- Membros ---------- */
+    function adicionarMembro(membro = { nome: "", nascimento: "", parentesco: "" }) {
+      const n = listaMembros.children.length + 1;
+      const linha = document.createElement("div");
+      linha.className = "membro-linha";
+      linha.innerHTML = `
+        <div class="campo">
+          <label for="mNome${n}">Nome do membro</label>
+          <input id="mNome${n}" class="m-nome" value="${escapar(membro.nome)}">
+        </div>
+        <div class="campo">
+          <label for="mNasc${n}">Nascimento</label>
+          <input id="mNasc${n}" class="m-nasc" type="date" value="${escapar(membro.nascimento)}" max="${hojeISO()}">
+        </div>
+        <div class="campo">
+          <label for="mPar${n}">Parentesco</label>
+          <select id="mPar${n}" class="m-par">
+            ${["Filho", "Filha", "Esposa", "Esposo", "Mãe", "Pai", "Neto", "Neta", "Irmão", "Irmã", "Outro"]
+              .map(p => `<option ${p === membro.parentesco ? "selected" : ""}>${p}</option>`).join("")}
+          </select>
+        </div>
+        <button type="button" class="btn-remover" aria-label="Remover membro">Remover</button>`;
+      linha.querySelector(".btn-remover").onclick = () => { linha.remove(); atualizarAvisoMembros(); };
+      listaMembros.append(linha);
+      atualizarAvisoMembros();
+    }
+
+    function atualizarAvisoMembros() {
+      $("semMembros").hidden = listaMembros.children.length > 0;
+    }
+
+    $("btnAddMembro").addEventListener("click", () => {
+      adicionarMembro();
+      listaMembros.lastElementChild.querySelector("input").focus();
+    });
+
+    /* ---------- Máscaras ---------- */
+    $("cpf").addEventListener("input", e => { e.target.value = mascararCPF(e.target.value); });
+    $("telefone").addEventListener("input", e => {
+      const n = somenteNumeros(e.target.value).slice(0, 11);
+      e.target.value = n
+        .replace(/^(\d{2})(\d)/, "($1) $2")
+        .replace(/(\d{4,5})(\d{4})$/, "$1-$2");
+    });
+
+    // Aviso de CPF repetido na hora em que a pessoa sai do campo (HU03)
+    $("cpf").addEventListener("blur", () => validarCPFCampo(false));
+
+    function validarCPFCampo(obrigatorio) {
+      const valor = $("cpf").value;
+      limparErro("Cpf");
+      if (!somenteNumeros(valor)) {
+        if (obrigatorio) { marcarErro("Cpf", "Digite o CPF do responsável."); return false; }
+        return true;
+      }
+      if (!cpfValido(valor)) {
+        marcarErro("Cpf", "CPF inválido. Confira os 11 números.");
+        return false;
+      }
+      const existente = familiaComCPF(valor, idEdicao);
+      if (existente) {
+        $("erroCpf").innerHTML = `⚠ Família já cadastrada: <a href="familia.html?id=${existente.id}">${escapar(existente.nome)}</a>`;
+        $("campoCpf").classList.add("erro");
+        return false;
+      }
+      return true;
+    }
+
+    function marcarErro(campo, msg) {
+      $("campo" + campo).classList.add("erro");
+      $("erro" + campo).textContent = msg;
+    }
+    function limparErro(campo) {
+      $("campo" + campo).classList.remove("erro");
+      $("erro" + campo).textContent = "";
+    }
+
+    /* ---------- Preenche na edição ---------- */
+    if (idEdicao && !familiaEdicao) {
+      $("erroGeral").textContent = "Família não encontrada.";
+    }
+    if (familiaEdicao) {
+      document.title = "Editar família – AFH Cadastros";
+      $("titulo").textContent = "Editar família";
+      $("linkVoltar").href = $("btnCancelar").href = "familia.html?id=" + idEdicao;
+      $("linkVoltar").textContent = "← Voltar para a ficha";
+      $("nome").value = familiaEdicao.nome;
+      $("cpf").value = formatarCPF(familiaEdicao.cpf);
+      $("telefone").value = familiaEdicao.telefone;
+      $("endereco").value = familiaEdicao.endereco;
+      $("bairro").value = familiaEdicao.bairro;
+      $("moradores").value = familiaEdicao.moradores;
+      $("renda").value = familiaEdicao.renda;
+      $("observacoes").value = familiaEdicao.observacoes;
+      $("ativa").checked = familiaEdicao.ativa;
+      $("blocoSituacao").hidden = false;
+      familiaEdicao.membros.forEach(adicionarMembro);
+    }
+
+    /* ---------- Salvar (validação completa) ---------- */
+    $("formFamilia").addEventListener("submit", evento => {
+      evento.preventDefault();
+      $("erroGeral").textContent = "";
+      ["Nome", "Telefone", "Moradores"].forEach(limparErro);
+
+      let ok = true;
+      const nome = $("nome").value.trim().replace(/\s+/g, " ");
+      if (!nome) { marcarErro("Nome", "Digite o nome completo do responsável."); ok = false; }
+      else if (nome.split(" ").length < 2) { marcarErro("Nome", "Digite nome e sobrenome."); ok = false; }
+
+      if (!validarCPFCampo(true)) ok = false;
+
+      const tel = somenteNumeros($("telefone").value);
+      if (tel && tel.length < 10) { marcarErro("Telefone", "Telefone incompleto. Use DDD + número."); ok = false; }
+
+      const moradores = Number($("moradores").value);
+      if (!moradores || moradores < 1) { marcarErro("Moradores", "Informe pelo menos 1 morador."); ok = false; }
+
+      if (!ok) {
+        $("erroGeral").textContent = "Confira os campos marcados em vermelho.";
+        document.querySelector(".campo.erro input")?.focus();
+        return;
+      }
+
+      const membros = [...listaMembros.children]
+        .map(l => ({
+          nome: l.querySelector(".m-nome").value.trim(),
+          nascimento: l.querySelector(".m-nasc").value,
+          parentesco: l.querySelector(".m-par").value
+        }))
+        .filter(m => m.nome);
+
+      const id = salvarFamilia({
+        id: idEdicao || undefined,
+        nome,
+        cpf: somenteNumeros($("cpf").value),
+        telefone: $("telefone").value.trim(),
+        endereco: $("endereco").value.trim(),
+        bairro: $("bairro").value.trim(),
+        moradores,
+        renda: $("renda").value.trim(),
+        observacoes: $("observacoes").value.trim(),
+        membros,
+        ...(idEdicao ? { ativa: $("ativa").checked } : {})
+      });
+
+      window.location.href = "familia.html?id=" + id + "&salvo=1";
+    });
+  </script>
+</body>
+</html>
