@@ -1,0 +1,249 @@
+/* =========================================================
+   AFH Cadastros – Guia de estilo (Etapa 3)
+   Cores, tipografia e componentes iguais ao protótipo do Figma
+   ========================================================= */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap");
+
+:root {
+  --verde: #1b6e3a;          /* botões principais, links */
+  --verde-escuro: #0f4d27;   /* menu, números do resumo */
+  --verde-claro: #e8f3ec;    /* status "Recebeu", cabeçalhos */
+  --fundo: #f6f8f6;
+  --branco: #ffffff;
+  --texto: #1f2a24;
+  --texto-sec: #4f5d55;
+  --borda: #cbd5ce;
+  --erro: #b42318;
+  --pend-fundo: #fff4db;
+  --pend-texto: #7a4f00;
+  --raio: 8px;
+  --raio-cartao: 12px;
+  --margem: 64px;
+}
+
+* { box-sizing: border-box; }
+
+html, body { margin: 0; }
+
+body {
+  font-family: "Inter", Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--texto);
+  background: var(--fundo);
+}
+
+a { color: var(--verde); font-weight: 600; text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* Foco visível em tudo (checklist de acessibilidade) */
+:focus-visible { outline: 3px solid var(--verde); outline-offset: 2px; }
+
+h1 { font-size: 32px; font-weight: 700; margin: 0 0 4px; }
+h2 { font-size: 20px; font-weight: 700; margin: 32px 0 16px; }
+.legenda { font-size: 14px; color: var(--texto-sec); margin: 0; }
+
+/* ---------- Menu superior (computador) ---------- */
+.menu {
+  background: var(--verde-escuro);
+  color: var(--branco);
+  display: flex;
+  align-items: center;
+  gap: 40px;
+  padding: 0 var(--margem) 0 32px;
+  height: 72px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.menu .logo { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 20px; color: var(--branco); }
+.menu .logo:hover { text-decoration: none; }
+.menu nav { display: flex; gap: 8px; flex: 1; }
+.menu nav a {
+  color: var(--branco);
+  font-weight: 400;
+  padding: 8px 20px;
+  border-bottom: 3px solid transparent;
+}
+.menu nav a.ativo { font-weight: 700; border-bottom-color: var(--branco); }
+.menu nav a:hover { text-decoration: none; border-bottom-color: rgba(255,255,255,.5); }
+.menu .usuario { display: flex; align-items: center; gap: 16px; font-size: 15px; }
+.menu .usuario button {
+  background: transparent; color: var(--branco); border: 1px solid rgba(255,255,255,.6);
+  border-radius: var(--raio); padding: 6px 12px; font: inherit; font-size: 14px; cursor: pointer;
+}
+
+/* ---------- Conteúdo ---------- */
+.conteudo { padding: 40px var(--margem) 64px; max-width: 1400px; margin: 0 auto; }
+
+.voltar { display: inline-block; font-size: 15px; margin-bottom: 8px; }
+
+/* ---------- Cartões ---------- */
+.cartao {
+  background: var(--branco);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio-cartao);
+  padding: 24px;
+}
+
+.resumo { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 32px; }
+.resumo .cartao p { margin: 0 0 8px; font-weight: 600; font-size: 15px; }
+.resumo .numero { font-size: 48px; font-weight: 700; color: var(--verde-escuro); line-height: 1.1; }
+.resumo .numero.pendente { color: var(--pend-texto); }
+
+/* ---------- Botões ---------- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  height: 48px; padding: 0 24px;
+  border-radius: var(--raio);
+  font: inherit; font-weight: 600; font-size: 16px;
+  cursor: pointer; border: 2px solid var(--verde);
+  text-decoration: none;
+}
+.btn:hover { text-decoration: none; filter: brightness(1.08); }
+.btn-principal { background: var(--verde); color: var(--branco); }
+.btn-secundario { background: var(--branco); color: var(--verde); }
+.btn-pequeno { height: 44px; padding: 0 18px; font-size: 15px; }
+.btn-largo { width: 100%; }
+
+/* ---------- Busca ---------- */
+.linha-busca { display: flex; gap: 24px; align-items: stretch; }
+.linha-busca input { flex: 1; }
+.linha-busca .btn { min-width: 260px; }
+
+/* ---------- Campos ---------- */
+.campo { display: flex; flex-direction: column; gap: 6px; }
+.campo label { font-weight: 600; font-size: 16px; }
+.campo .dica { font-size: 14px; color: var(--texto-sec); }
+input, select, textarea {
+  font: inherit; font-size: 16px; color: var(--texto);
+  height: 48px; padding: 0 14px;
+  border: 1px solid var(--borda); border-radius: var(--raio);
+  background: var(--branco); width: 100%;
+}
+textarea { height: auto; min-height: 96px; padding: 12px 14px; resize: vertical; }
+input::placeholder, textarea::placeholder { color: #6b7770; }
+.campo.erro input { border: 2px solid var(--erro); }
+.msg-erro { color: var(--erro); font-weight: 600; font-size: 14px; margin: 0; }
+.msg-erro:empty { display: none; }
+
+.grade-form { display: grid; grid-template-columns: 2fr 1.4fr 1fr; gap: 20px 32px; }
+.grade-form .duplo { grid-column: span 1; }
+.grade-form .meio { grid-column: span 2; }
+
+/* ---------- Listas de famílias ---------- */
+.lista { display: flex; flex-direction: column; gap: 12px; }
+.item-familia {
+  background: var(--branco); border: 1px solid var(--borda); border-radius: var(--raio-cartao);
+  padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px;
+}
+.item-familia .nome { font-weight: 700; font-size: 18px; margin: 0; }
+.item-familia .info { font-size: 15px; color: var(--texto-sec); margin: 0; }
+.item-familia .acoes { display: flex; gap: 12px; align-items: center; }
+.vazio { color: var(--texto-sec); background: var(--branco); border: 1px dashed var(--borda); border-radius: var(--raio-cartao); padding: 24px; text-align: center; }
+
+/* Tabela (lista de famílias no computador) */
+table { width: 100%; border-collapse: collapse; background: var(--branco); border: 1px solid var(--borda); border-radius: var(--raio-cartao); overflow: hidden; }
+th { background: var(--verde-claro); text-align: left; padding: 14px 20px; font-size: 15px; }
+td { padding: 14px 20px; border-top: 1px solid var(--borda); }
+tr.clicavel { cursor: pointer; }
+tr.clicavel:hover td { background: #fafcfa; }
+
+/* ---------- Etiquetas de status ---------- */
+.status { display: inline-block; padding: 4px 12px; border-radius: 999px; font-size: 14px; font-weight: 600; white-space: nowrap; }
+.status.recebeu { background: var(--verde-claro); color: var(--verde-escuro); }
+.status.pendente { background: var(--pend-fundo); color: var(--pend-texto); }
+.status.inativa { background: #eceeed; color: var(--texto-sec); }
+
+/* ---------- Avisos ---------- */
+.aviso { border-radius: var(--raio); padding: 12px 16px; font-weight: 600; margin: 0 0 16px; }
+.aviso.ok { background: var(--verde-claro); color: var(--verde-escuro); }
+.aviso.atencao { background: var(--pend-fundo); color: var(--pend-texto); }
+.aviso.erro { background: #fdecea; color: var(--erro); }
+.aviso:empty { display: none; }
+
+/* ---------- Ficha da família ---------- */
+.ficha-topo { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+.ficha-topo .acoes { display: flex; gap: 12px; }
+.dados { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px 32px; }
+.dados dt { font-size: 14px; color: var(--texto-sec); }
+.dados dd { margin: 0; font-weight: 600; }
+.duas-colunas { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 24px; }
+.historico { list-style: none; margin: 0; padding: 0; }
+.historico li { padding: 12px 0; border-top: 1px solid var(--borda); }
+.historico li:first-child { border-top: 0; }
+
+/* Membros no formulário */
+.membro-linha { display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 12px; align-items: end; margin-bottom: 12px; }
+.btn-remover { background: none; border: 0; color: var(--erro); font: inherit; font-weight: 600; cursor: pointer; height: 48px; padding: 0 8px; }
+
+.rodape-form { display: flex; justify-content: flex-end; gap: 16px; border-top: 1px solid var(--borda); padding-top: 24px; margin-top: 24px; }
+
+/* ---------- Janela (modal) de entrega ---------- */
+dialog { border: 0; border-radius: var(--raio-cartao); padding: 32px; width: min(520px, 92vw); box-shadow: 0 20px 60px rgba(0,0,0,.25); }
+dialog::backdrop { background: rgba(15, 30, 20, .45); }
+dialog h2 { margin-top: 0; }
+dialog form { display: flex; flex-direction: column; gap: 16px; }
+
+/* ---------- Login ---------- */
+.tela-login { display: grid; grid-template-columns: 1fr 1fr; min-height: 100vh; }
+.login-marca { background: var(--verde-escuro); color: var(--branco); display: flex; flex-direction: column; justify-content: center; padding: 80px; }
+.login-marca h1 { font-size: 48px; margin: 24px 0 16px; }
+.login-marca p { font-size: 20px; margin: 0; max-width: 460px; }
+.login-lado { display: flex; align-items: center; justify-content: center; padding: 40px 24px; }
+.login-cartao { width: min(440px, 100%); padding: 40px; }
+.login-cartao form { display: flex; flex-direction: column; gap: 18px; margin-top: 24px; }
+.login-cartao .esqueci { text-align: center; }
+.contas-teste { margin-top: 20px; font-size: 14px; color: var(--texto-sec); }
+
+/* ---------- Barra inferior (celular) ---------- */
+.menu-celular { display: none; }
+
+.so-celular { display: none; }
+
+/* =========================================================
+   Versão mobile (mobile-first no protótipo) – telas até 760px
+   ========================================================= */
+@media (max-width: 760px) {
+  :root { --margem: 20px; }
+  h1 { font-size: 26px; }
+  h2 { font-size: 18px; }
+  .menu { height: 60px; padding: 0 var(--margem); gap: 12px; justify-content: space-between; }
+  .menu nav { display: none; }
+  .menu .usuario span { display: none; }
+  .conteudo { padding: 24px var(--margem) 110px; }
+  .resumo { grid-template-columns: 1fr; gap: 12px; }
+  .resumo .numero { font-size: 36px; }
+  .linha-busca { flex-direction: column; gap: 12px; }
+  .linha-busca input { flex: none; }
+  .item-familia .status { align-self: flex-start; }
+  .linha-busca .btn { min-width: 0; width: 100%; height: 52px; }
+  .btn { height: 52px; }
+  .grade-form, .dados, .duas-colunas { grid-template-columns: 1fr; }
+  .grade-form .meio { grid-column: span 1; }
+  .item-familia { flex-direction: column; align-items: stretch; }
+  .item-familia .acoes { flex-direction: column; align-items: stretch; }
+  .item-familia .btn { width: 100%; }
+  .membro-linha { grid-template-columns: 1fr; }
+  .rodape-form { flex-direction: column-reverse; }
+  .rodape-form .btn { width: 100%; }
+  .so-computador { display: none; }
+  .so-celular { display: block; }
+  .tela-login { grid-template-columns: 1fr; }
+  .login-marca { padding: 40px 24px; }
+  .login-marca h1 { font-size: 32px; }
+  .login-marca p { font-size: 16px; }
+  .login-cartao { padding: 24px; }
+
+  .menu-celular {
+    display: flex; position: fixed; bottom: 0; left: 0; right: 0; z-index: 20;
+    background: var(--branco); border-top: 1px solid var(--borda); height: 68px;
+  }
+  .menu-celular a {
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    color: var(--texto-sec); font-weight: 600; font-size: 13px; min-height: 44px;
+  }
+  .menu-celular a .icone { font-size: 20px; line-height: 1; }
+  .menu-celular a.ativo { color: var(--verde); }
+  .menu-celular a:hover { text-decoration: none; }
+}
