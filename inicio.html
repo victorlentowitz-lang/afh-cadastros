@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Início – AFH Cadastros</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <main class="conteudo">
+    <h1 id="ola">Olá</h1>
+    <p class="legenda" id="resumoMes">Resumo do mês</p>
+
+    <!-- Resumo do mês (HU07 / HU10) -->
+    <section class="resumo" aria-label="Resumo do mês">
+      <div class="cartao">
+        <p>Famílias ativas</p>
+        <div class="numero" id="totalAtivas">0</div>
+      </div>
+      <div class="cartao">
+        <p>Cestas entregues no mês</p>
+        <div class="numero" id="totalEntregues">0</div>
+      </div>
+      <div class="cartao">
+        <p>Faltam receber no mês</p>
+        <div class="numero pendente" id="totalFaltam">0</div>
+      </div>
+    </section>
+
+    <!-- Busca (HU04) -->
+    <h2><label for="busca">Buscar família</label></h2>
+    <form class="linha-busca" id="formBusca" role="search">
+      <input type="search" id="busca" placeholder="🔍 Digite o nome ou o CPF do responsável">
+      <a class="btn btn-principal" href="familia-form.html">+ Nova família</a>
+    </form>
+
+    <!-- Lista de quem ainda não recebeu (HU07) -->
+    <h2>Famílias que ainda não receberam cesta este mês</h2>
+    <div class="lista" id="listaPendentes"></div>
+  </main>
+
+  <script src="js/auth.js"></script>
+  <script src="js/dados.js"></script>
+  <script src="js/layout.js"></script>
+  <script>
+    const sessao = montarMenu("inicio");
+
+    document.getElementById("ola").textContent = "Olá, " + (sessao ? sessao.nome : "");
+    document.getElementById("resumoMes").textContent = "Resumo de " + nomeDoMes();
+
+    // A busca leva para a tela Famílias já filtrada
+    document.getElementById("formBusca").addEventListener("submit", e => {
+      e.preventDefault();
+      const termo = document.getElementById("busca").value.trim();
+      window.location.href = "familias.html" + (termo ? "?busca=" + encodeURIComponent(termo) : "");
+    });
+
+    function atualizarTela() {
+      const ativas = listarFamilias().filter(f => f.ativa);
+      const pendentes = ativas.filter(f => !cestaDoMes(f));
+
+      document.getElementById("totalAtivas").textContent = ativas.length;
+      document.getElementById("totalEntregues").textContent = ativas.length - pendentes.length;
+      document.getElementById("totalFaltam").textContent = pendentes.length;
+
+      const lista = document.getElementById("listaPendentes");
+      if (pendentes.length === 0) {
+        lista.innerHTML = `<p class="vazio">✓ Todas as famílias ativas já receberam a cesta deste mês.</p>`;
+        return;
+      }
+      lista.innerHTML = pendentes.map(f => `
+        <div class="item-familia">
+          <div>
+            <p class="nome"><a href="familia.html?id=${f.id}" style="color:inherit">${escapar(f.nome)}</a></p>
+            <p class="info">${escapar(f.bairro)} · ${f.moradores} ${f.moradores == 1 ? "pessoa" : "pessoas"}</p>
+          </div>
+          <div class="acoes">
+            <button class="btn btn-secundario btn-pequeno" data-entrega="${f.id}">Registrar entrega</button>
+          </div>
+        </div>`).join("");
+
+      lista.querySelectorAll("[data-entrega]").forEach(botao =>
+        botao.addEventListener("click", () => abrirJanelaEntrega(botao.dataset.entrega, atualizarTela))
+      );
+    }
+
+    atualizarTela();
+  </script>
+</body>
+</html>
