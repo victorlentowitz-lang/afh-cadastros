@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Relatórios – AFH Cadastros</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .filtro-mes { display: flex; gap: 16px; align-items: end; flex-wrap: wrap; margin-top: 24px; }
+    .filtro-mes .campo { width: 260px; }
+    @media print {
+      .menu, .menu-celular, .filtro-mes .btn, .nao-imprimir { display: none !important; }
+      .conteudo { padding: 0; }
+      body { background: #fff; }
+    }
+  </style>
+</head>
+<body>
+  <main class="conteudo">
+    <h1>Relatório do mês</h1>
+    <p class="legenda">Números da AFH para mostrar a parceiros e doadores (RF11 · HU10).</p>
+
+    <div class="filtro-mes">
+      <div class="campo">
+        <label for="mes">Mês do relatório</label>
+        <input type="month" id="mes">
+      </div>
+      <button type="button" class="btn btn-secundario" id="btnImprimir">Imprimir relatório</button>
+    </div>
+
+    <section class="resumo" aria-label="Totais do mês">
+      <div class="cartao">
+        <p>Famílias ativas</p>
+        <div class="numero" id="totalAtivas">0</div>
+      </div>
+      <div class="cartao">
+        <p>Doações entregues no mês</p>
+        <div class="numero" id="totalDoacoes">0</div>
+      </div>
+      <div class="cartao">
+        <p>Famílias que receberam cesta</p>
+        <div class="numero" id="totalCestas">0</div>
+      </div>
+    </section>
+
+    <h2>Doações por tipo</h2>
+    <table>
+      <thead><tr><th>Tipo</th><th>Entregas</th><th>Quantidade de itens</th></tr></thead>
+      <tbody id="porTipo"></tbody>
+    </table>
+
+    <h2>Entregas do mês</h2>
+    <div class="so-computador">
+      <table>
+        <thead><tr><th>Data</th><th>Família</th><th>Tipo</th><th>Quantidade</th><th>Registrado por</th></tr></thead>
+        <tbody id="entregas"></tbody>
+      </table>
+    </div>
+    <div class="so-celular lista" id="entregasCelular"></div>
+
+    <p class="legenda nao-imprimir" style="margin-top:24px">
+      O total de atendimentos (fisioterapia e psicossocial) entra no relatório quando o registro de atendimentos (RF09) for feito, na Sprint 2.
+    </p>
+  </main>
+
+  <script src="js/auth.js"></script>
+  <script src="js/dados.js"></script>
+  <script src="js/layout.js"></script>
+  <script>
+    montarMenu("relatorios");
+
+    const campoMes = document.getElementById("mes");
+    campoMes.value = mesAtual();
+    campoMes.max = mesAtual();
+
+    function nomeMes(anoMes) {
+      const [a, m] = anoMes.split("-").map(Number);
+      return new Date(a, m - 1, 1).toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+    }
+
+    function gerarRelatorio() {
+      const mes = campoMes.value || mesAtual();
+      const familias = listarFamilias();
+
+      // Junta todas as entregas do mês escolhido, com o nome da família
+      const entregas = [];
+      familias.forEach(f => (f.entregas || []).forEach(e => {
+        if (e.data.slice(0, 7) === mes) entregas.push({ ...e, familia: f.nome, idFamilia: f.id });
+      }));
+      entregas.sort((a, b) => b.data.localeCompare(a.data));
+
+      const familiasComCesta = new Set(entregas.filter(e => e.tipo === "Cesta básica").map(e => e.idFamilia));
+
+      document.getElementById("totalAtivas").textContent = familias.filter(f => f.ativa).length;
+      document.getElementById("totalDoacoes").textContent = entregas.length;
+      document.getElementById("totalCestas").textContent = familiasComCesta.size;
+      document.title = "Relatório de " + nomeMes(mes) + " – AFH Cadastros";
+
+      // Tabela por tipo
+      const tipos = ["Cesta básica", "Roupa", "Outro"];
+      document.getElementById("porTipo").innerHTML = tipos.map(tipo => {
+        const doTipo = entregas.filter(e => e.tipo === tipo);
+        const itens = doTipo.reduce((soma, e) => soma + Number(e.quantidade || 0), 0);
+        return `<tr><td>${tipo}</td><td>${doTipo.length}</td><td>${itens}</td></tr>`;
+      }).join("");
+
+      // Lista de entregas
+      const tabela = document.getElementById("entregas");
+      const cartoes = document.getElementById("entregasCelular");
+      if (entregas.length === 0) {
+        tabela.innerHTML = `<tr><td colspan="5">Nenhuma entrega registrada em ${nomeMes(mes)}.</td></tr>`;
+        cartoes.innerHTML = `<p class="vazio">Nenhuma entrega registrada em ${nomeMes(mes)}.</p>`;
+        return;
+      }
+      tabela.innerHTML = entregas.map(e => `
+        <tr>
+          <td>${formatarData(e.data)}</td>
+          <td><a href="familia.html?id=${e.idFamilia}">${escapar(e.familia)}</a></td>
+          <td>${escapar(e.tipo)}</td>
+          <td>${e.quantidade}</td>
+          <td>${escapar(e.registradoPor || "—")}</td>
+        </tr>`).join("");
+      cartoes.innerHTML = entregas.map(e => `
+        <a class="item-familia" href="familia.html?id=${e.idFamilia}" style="color:inherit;font-weight:400">
+          <div>
+            <p class="nome">${escapar(e.familia)}</p>
+            <p class="info">${formatarData(e.data)} · ${escapar(e.tipo)} (${e.quantidade})</p>
+          </div>
+        </a>`).join("");
+    }
+
+    campoMes.addEventListener("change", gerarRelatorio);
+    document.getElementById("btnImprimir").addEventListener("click", () => window.print());
+    gerarRelatorio();
+  </script>
+</body>
+</html>

@@ -23,6 +23,7 @@ Os cadastros das famílias atendidas pela AFH ficam em fichas de papel. É difí
 | Registrar entrega, com aviso se a família já recebeu cesta no mês | RF07 · HU06 |
 | Lista de famílias que ainda não receberam cesta no mês | RF08 · HU07 |
 | Histórico de entregas da família, do mais recente para o mais antigo | RF10 |
+| Relatório do mês: famílias ativas, doações por tipo e lista de entregas, com opção de imprimir | RF11 · HU10 |
 | Layout responsivo: no celular o menu vira barra fixa embaixo e a lista vira cartões | RNF03 · Protótipo |
 
 As telas seguem o protótipo do Figma da Etapa 3 (cores, fonte Inter, tamanhos e componentes do guia de estilo).
@@ -54,7 +55,8 @@ afh-cadastros/
 ├── familias.html       → lista e busca de famílias
 ├── familia-form.html   → cadastro e edição de família
 ├── familia.html        → ficha da família (dados, membros e histórico)
-├── em-breve.html       → telas da próxima sprint (Doações, Relatórios)
+├── relatorios.html     → relatório do mês
+├── em-breve.html       → tela de Doações (próxima sprint)
 ├── css/
 │   └── style.css       → guia de estilo do protótipo (cores, fonte, componentes)
 ├── js/
@@ -72,7 +74,7 @@ HTML, CSS e JavaScript puro (sem frameworks), para rodar em qualquer computador 
 
 ## Próxima sprint
 
-- Tela de Doações e Relatório do mês (RF11 · HU10)
+- Tela de Doações e total de atendimentos no relatório
 - Registro de atendimentos de fisioterapia e psicossocial (RF09 · HU08)
 - Perfil "voluntário" sem acesso às anotações de saúde (RF13)
 - Trocar o localStorage por um banco de dados
