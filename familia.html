@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ficha da família – AFH Cadastros</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <main class="conteudo">
+    <a class="voltar" href="familias.html">← Voltar para Famílias</a>
+    <p class="aviso ok" id="avisoSalvo" role="status"></p>
+
+    <div class="ficha-topo">
+      <div>
+        <h1 id="nome">Família</h1>
+        <p class="legenda" id="subtitulo"></p>
+        <div id="status" style="margin-top:8px"></div>
+      </div>
+      <div class="acoes">
+        <a class="btn btn-secundario" id="btnEditar" href="#">Editar</a>
+        <button class="btn btn-principal" id="btnEntrega" type="button">Registrar entrega</button>
+      </div>
+    </div>
+
+    <!-- Dados (RF02) -->
+    <section class="cartao" style="margin-top:24px">
+      <h2 style="margin-top:0">Dados do responsável</h2>
+      <dl class="dados" id="dados"></dl>
+    </section>
+
+    <div class="duas-colunas">
+      <!-- Membros (RF03) -->
+      <section class="cartao">
+        <h2 style="margin-top:0">Membros da família</h2>
+        <ul class="historico" id="membros"></ul>
+      </section>
+
+      <!-- Histórico (RF10 / HU09): mais recente primeiro -->
+      <section class="cartao">
+        <h2 style="margin-top:0">Histórico de entregas</h2>
+        <ul class="historico" id="historico"></ul>
+      </section>
+    </div>
+  </main>
+
+  <script src="js/auth.js"></script>
+  <script src="js/dados.js"></script>
+  <script src="js/layout.js"></script>
+  <script>
+    montarMenu("familias");
+    const params = new URLSearchParams(location.search);
+    const id = Number(params.get("id"));
+
+    if (params.get("salvo")) {
+      document.getElementById("avisoSalvo").textContent = "✓ Família salva com sucesso.";
+    }
+
+    function mostrar() {
+      const f = buscarFamiliaPorId(id);
+      if (!f) {
+        document.querySelector("main").innerHTML =
+          `<a class="voltar" href="familias.html">← Voltar para Famílias</a><h1>Família não encontrada</h1>`;
+        return;
+      }
+      document.title = f.nome + " – AFH Cadastros";
+      document.getElementById("nome").textContent = f.nome;
+      document.getElementById("subtitulo").textContent = `CPF ${formatarCPF(f.cpf)} · ${f.bairro || "sem bairro"}`;
+      document.getElementById("btnEditar").href = "familia-form.html?id=" + f.id;
+
+      const cesta = cestaDoMes(f);
+      document.getElementById("status").innerHTML = !f.ativa
+        ? `<span class="status inativa">Família inativa</span>`
+        : cesta
+          ? `<span class="status recebeu">Recebeu em ${formatarData(cesta.data)}</span>`
+          : `<span class="status pendente">Ainda não recebeu cesta este mês</span>`;
+
+      document.getElementById("btnEntrega").hidden = !f.ativa;
+
+      const campos = [
+        ["Telefone", f.telefone], ["Endereço", f.endereco], ["Bairro", f.bairro],
+        ["Moradores", f.moradores], ["Renda familiar", f.renda ? "R$ " + f.renda : ""],
+        ["Observações", f.observacoes]
+      ];
+      document.getElementById("dados").innerHTML = campos.map(([rotulo, valor]) =>
+        `<div><dt>${rotulo}</dt><dd>${escapar(valor) || "—"}</dd></div>`).join("");
+
+      document.getElementById("membros").innerHTML = f.membros.length
+        ? f.membros.map(m => `<li><strong>${escapar(m.nome)}</strong><br>
+            <span class="legenda">${escapar(m.parentesco)}${m.nascimento ? " · " + idade(m.nascimento) + " anos" : ""}</span></li>`).join("")
+        : `<li class="legenda">Nenhum membro cadastrado.</li>`;
+
+      const entregas = [...f.entregas].sort((a, b) => b.data.localeCompare(a.data));
+      document.getElementById("historico").innerHTML = entregas.length
+        ? entregas.map(e => `<li><strong>${formatarData(e.data)}</strong> · ${escapar(e.tipo)} (${e.quantidade})<br>
+            <span class="legenda">Registrado por ${escapar(e.registradoPor || "—")}</span></li>`).join("")
+        : `<li class="legenda">Nenhuma entrega registrada ainda.</li>`;
+    }
+
+    document.getElementById("btnEntrega").addEventListener("click", () => {
+      abrirJanelaEntrega(id, () => {
+        document.getElementById("avisoSalvo").textContent = "✓ Entrega registrada.";
+        mostrar();
+      });
+    });
+
+    mostrar();
+  </script>
+</body>
+</html>

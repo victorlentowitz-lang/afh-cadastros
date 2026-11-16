@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Entrar – AFH Cadastros</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <main class="tela-login">
+    <section class="login-marca">
+      <span style="font-size:64px;line-height:1" aria-hidden="true">♥</span>
+      <h1>AFH Cadastros</h1>
+      <p>Associação de Apoio às Famílias com Hanseníase e Demais Doenças – Guarapuava</p>
+    </section>
+
+    <section class="login-lado">
+      <div class="cartao login-cartao">
+        <h1>Entrar</h1>
+        <p class="legenda">Use o e-mail e a senha da equipe.</p>
+
+        <form id="formLogin" novalidate>
+          <p class="aviso erro" id="erroLogin" role="alert"></p>
+
+          <div class="campo" id="campoEmail">
+            <label for="email">E-mail</label>
+            <input type="email" id="email" autocomplete="username" placeholder="nome@afh.org.br" required>
+            <p class="msg-erro" id="erroEmail"></p>
+          </div>
+
+          <div class="campo" id="campoSenha">
+            <label for="senha">Senha</label>
+            <input type="password" id="senha" autocomplete="current-password" required>
+            <p class="msg-erro" id="erroSenha"></p>
+          </div>
+
+          <button type="submit" class="btn btn-principal btn-largo" style="margin-top:12px">Entrar</button>
+          <a class="esqueci" href="#" id="esqueci">Esqueci minha senha</a>
+        </form>
+
+        <p class="contas-teste">
+          <strong>Contas de teste:</strong><br>
+          patricia@afh.org.br (administradora)<br>
+          pedro@afh.org.br (voluntário)<br>
+          Senha das duas: <code>afh2026</code>
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <script src="js/auth.js"></script>
+  <script>
+    // Se já está logado, vai direto para o início
+    if (lerSessao()) window.location.replace("inicio.html");
+
+    const params = new URLSearchParams(location.search);
+    if (params.get("motivo") === "expirou") {
+      document.getElementById("erroLogin").textContent =
+        "Você ficou 30 minutos sem usar o sistema e foi desconectado. Entre de novo.";
+    }
+
+    document.getElementById("esqueci").addEventListener("click", e => {
+      e.preventDefault();
+      document.getElementById("erroLogin").textContent =
+        "Para trocar a senha, fale com a Patrícia (administradora).";
+    });
+
+    document.getElementById("formLogin").addEventListener("submit", evento => {
+      evento.preventDefault();
+      const email = document.getElementById("email").value.trim();
+      const senha = document.getElementById("senha").value;
+      const erroGeral = document.getElementById("erroLogin");
+
+      // limpa erros anteriores
+      erroGeral.textContent = "";
+      ["Email", "Senha"].forEach(c => {
+        document.getElementById("campo" + c).classList.remove("erro");
+        document.getElementById("erro" + c).textContent = "";
+      });
+
+      let ok = true;
+      if (!email) {
+        marcarErro("Email", "Digite seu e-mail."); ok = false;
+      } else if (!validarEmail(email)) {
+        marcarErro("Email", "Digite um e-mail válido, por exemplo nome@afh.org.br."); ok = false;
+      }
+      if (!senha) {
+        marcarErro("Senha", "Digite sua senha."); ok = false;
+      }
+      if (!ok) return;
+
+      const usuario = autenticar(email, senha);
+      if (!usuario) {
+        erroGeral.textContent = "E-mail ou senha incorretos"; // texto da HU01
+        document.getElementById("senha").value = "";
+        document.getElementById("senha").focus();
+        return;
+      }
+      iniciarSessao(usuario);
+      window.location.href = "inicio.html";
+    });
+
+    function marcarErro(campo, mensagem) {
+      document.getElementById("campo" + campo).classList.add("erro");
+      document.getElementById("erro" + campo).textContent = mensagem;
+    }
+  </script>
+</body>
+</html>
