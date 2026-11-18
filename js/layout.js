@@ -10,7 +10,7 @@ function montarMenu(paginaAtiva) {
   const links = [
     { id: "inicio", texto: "Início", href: "inicio.html", icone: "⌂" },
     { id: "familias", texto: "Famílias", href: "familias.html", icone: "👥" },
-    { id: "doacoes", texto: "Doações", href: "em-breve.html?tela=Doações", icone: "🎁" },
+    { id: "doacoes", texto: "Doações", href: "doacoes.html", icone: "🎁" },
     { id: "relatorios", texto: "Relatórios", href: "relatorios.html", icone: "📊" }
   ];
 
