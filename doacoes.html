@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Doações – AFH Cadastros</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .filtros { display: grid; grid-template-columns: 1fr 220px 220px; gap: 16px; align-items: end; margin-top: 24px; }
+    .registrar { display: flex; gap: 16px; align-items: end; flex-wrap: wrap; }
+    .registrar .campo { flex: 1; min-width: 260px; }
+    @media (max-width: 760px) {
+      .filtros { grid-template-columns: 1fr; }
+      .registrar .btn { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <main class="conteudo">
+    <h1>Doações</h1>
+    <p class="legenda">Todas as doações entregues às famílias, com filtros por mês, tipo e família (RF07 · HU06).</p>
+
+    <!-- Registrar uma nova entrega escolhendo a família -->
+    <section class="cartao" style="margin-top:24px">
+      <h2 style="margin-top:0">Registrar doação</h2>
+      <p class="aviso ok" id="avisoSalvo" role="status"></p>
+      <div class="registrar">
+        <div class="campo">
+          <label for="familiaEntrega">Família</label>
+          <select id="familiaEntrega"></select>
+        </div>
+        <button type="button" class="btn btn-principal" id="btnRegistrar">Registrar entrega</button>
+      </div>
+    </section>
+
+    <!-- Resumo do período filtrado -->
+    <section class="resumo" aria-label="Totais das doações filtradas">
+      <div class="cartao">
+        <p>Doações no período</p>
+        <div class="numero" id="totalDoacoes">0</div>
+      </div>
+      <div class="cartao">
+        <p>Itens entregues</p>
+        <div class="numero" id="totalItens">0</div>
+      </div>
+      <div class="cartao">
+        <p>Famílias atendidas</p>
+        <div class="numero" id="totalFamilias">0</div>
+      </div>
+    </section>
+
+    <!-- Filtros -->
+    <div class="filtros">
+      <div class="campo">
+        <label for="busca">Família</label>
+        <input type="search" id="busca" placeholder="🔍 Nome do responsável" autocomplete="off">
+      </div>
+      <div class="campo">
+        <label for="mes">Mês</label>
+        <select id="mes"></select>
+      </div>
+      <div class="campo">
+        <label for="tipo">Tipo</label>
+        <select id="tipo">
+          <option value="">Todos</option>
+          <option>Cesta básica</option>
+          <option>Roupa</option>
+          <option>Outro</option>
+        </select>
+      </div>
+    </div>
+
+    <h2>Histórico de doações</h2>
+    <div class="so-computador">
+      <table>
+        <thead><tr><th>Data</th><th>Família</th><th>Tipo</th><th>Quantidade</th><th>Registrado por</th></tr></thead>
+        <tbody id="tabela"></tbody>
+      </table>
+    </div>
+    <div class="so-celular lista" id="cartoes"></div>
+  </main>
+
+  <script src="js/auth.js"></script>
+  <script src="js/dados.js"></script>
+  <script src="js/layout.js"></script>
+  <script>
+    montarMenu("doacoes");
+
+    const $ = id => document.getElementById(id);
+    const normalizar = t => t.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+
+    function nomeMes(anoMes) {
+      const [a, m] = anoMes.split("-").map(Number);
+      return new Date(a, m - 1, 1).toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+    }
+
+    // Lista de famílias ativas para registrar a entrega
+    function preencherFamilias() {
+      const ativas = listarFamilias().filter(f => f.ativa).sort((a, b) => a.nome.localeCompare(b.nome));
+      $("familiaEntrega").innerHTML = ativas.map(f => {
+        const status = cestaDoMes(f) ? " (já recebeu cesta este mês)" : "";
+        return `<option value="${f.id}">${escapar(f.nome)}${status}</option>`;
+      }).join("");
+    }
+
+    // Todas as entregas de todas as famílias, com o nome da família
+    function todasEntregas() {
+      const lista = [];
+      listarFamilias().forEach(f => (f.entregas || []).forEach(e =>
+        lista.push({ ...e, familia: f.nome, idFamilia: f.id })
+      ));
+      return lista.sort((a, b) => b.data.localeCompare(a.data));
+    }
+
+    // Meses que têm entrega (mais o mês atual)
+    function preencherMeses() {
+      const meses = new Set([mesAtual(), ...todasEntregas().map(e => e.data.slice(0, 7))]);
+      const atual = $("mes").value;
+      $("mes").innerHTML = `<option value="">Todos os meses</option>` +
+        [...meses].sort().reverse().map(m => `<option value="${m}">${nomeMes(m)}</option>`).join("");
+      $("mes").value = atual || mesAtual();
+    }
+
+    function mostrar() {
+      const termo = normalizar($("busca").value.trim());
+      const mes = $("mes").value;
+      const tipo = $("tipo").value;
+
+      const filtradas = todasEntregas().filter(e =>
+        (!mes || e.data.slice(0, 7) === mes) &&
+        (!tipo || e.tipo === tipo) &&
+        (!termo || normalizar(e.familia).includes(termo))
+      );
+
+      $("totalDoacoes").textContent = filtradas.length;
+      $("totalItens").textContent = filtradas.reduce((s, e) => s + Number(e.quantidade || 0), 0);
+      $("totalFamilias").textContent = new Set(filtradas.map(e => e.idFamilia)).size;
+
+      if (filtradas.length === 0) {
+        $("tabela").innerHTML = `<tr><td colspan="5">Nenhuma doação encontrada com esses filtros.</td></tr>`;
+        $("cartoes").innerHTML = `<p class="vazio">Nenhuma doação encontrada com esses filtros.</p>`;
+        return;
+      }
+
+      $("tabela").innerHTML = filtradas.map(e => `
+        <tr>
+          <td>${formatarData(e.data)}</td>
+          <td><a href="familia.html?id=${e.idFamilia}">${escapar(e.familia)}</a></td>
+          <td>${escapar(e.tipo)}</td>
+          <td>${e.quantidade}</td>
+          <td>${escapar(e.registradoPor || "—")}</td>
+        </tr>`).join("");
+
+      $("cartoes").innerHTML = filtradas.map(e => `
+        <a class="item-familia" href="familia.html?id=${e.idFamilia}" style="color:inherit;font-weight:400">
+          <div>
+            <p class="nome">${escapar(e.familia)}</p>
+            <p class="info">${formatarData(e.data)} · ${escapar(e.tipo)} (${e.quantidade})</p>
+          </div>
+        </a>`).join("");
+    }
+
+    $("btnRegistrar").addEventListener("click", () => {
+      const id = $("familiaEntrega").value;
+      if (!id) return;
+      abrirJanelaEntrega(id, () => {
+        $("avisoSalvo").textContent = "✓ Doação registrada.";
+        preencherFamilias();
+        preencherMeses();
+        mostrar();
+      });
+    });
+
+    ["busca", "mes", "tipo"].forEach(id =>
+      $(id).addEventListener(id === "busca" ? "input" : "change", mostrar)
+    );
+
+    preencherFamilias();
+    preencherMeses();
+    mostrar();
+  </script>
+</body>
+</html>
